@@ -22,8 +22,6 @@ var result = [];
 var res = '';
 var user = '';
 var userBotName = '';
-var commandStart = '/start';
-var commandGame = '/game';
 
 axios
 	.request(options)
@@ -375,6 +373,18 @@ const start = async () => {
 					chatId,
 					`${username}, Добро пожаловать в телеграм бот, со мной ты можешь поиграть в казино. Для того чтобы начать игру напиши /game`
 				);
+				const getHELP = () => {
+					let helpText = `*Доступные команды:*\n`;
+					helpText += COMMANDS.map(
+						(command) =>
+							`*${command.command}* ${command.description}`
+					).join(`\n`);
+					return bot.sendMessage(chatId, helpText, {
+						parse_mode: 'Markdown',
+					});
+				};
+
+				await getHELP()
 			}
 		} catch (e) {
 			return bot.sendMessage(chatId, 'Произошла какая то ошибочка!)');
