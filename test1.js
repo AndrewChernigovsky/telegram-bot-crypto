@@ -1,11 +1,11 @@
 import axios from 'axios';
 import TelegramApi from 'node-telegram-bot-api';
-import { againOptions, gameOptions } from './options.js';
+import { againOptions, gameOptions, wallet } from './options.js';
 import { COMMANDS  } from './commands.js'
 
 process.env.NTBA_FIX_319 = 1;
 
-const token = '6032976284:AAFk3IgzIblR-jD6gb0c6bqtbhwyBPxOTWc';
+const token = '6064445842:AAHuGFQQmzI1AfMAaUS0Uger6mL41Z-1thY';
 const bot = new TelegramApi(token, { polling: true });
 
 const options = {
@@ -22,12 +22,14 @@ var result = [];
 var res = '';
 var user = '';
 var userBotName = '';
+var update;
 
 axios
 	.request(options)
 		.then(function (response) {
 			console.log(response.data);
 			userBotName = response.data.result.username;
+			update = response.data.body;
 			console.log(userBotName);
 		})
 		.catch(function (error) {
@@ -294,13 +296,38 @@ const startGame = async (chatId) => {
 
 
 function getUsername(username) {
+	
 	user = username;
 
 	return user;
 }
 
+const getWallet = async (chatId) => {
+    await bot.sendMessage(chatId, `Чтобы мы занесли вас в нашу базу, пришлите корректный адрес вашего кошелька (48 символов)`);
+
+    const message = update.message || update.edited_message;
+
+    if (message.reply_to_message) {
+        const previousMessageID = message.reply_to_message.message_id;
+        const previousMessageText = message.reply_to_message.text;
+    }
+
+    console.log(previousMessageID, previousMessageText);
+}
+
 const start = async () => {
-	
+
+
+	const getHELP = () => { 
+		let helpText = `*Доступные команды:*\n`;
+			helpText += COMMANDS.map(
+				(command) => `*/${command.command}* ${command.description}`
+			).join(`\n`);
+			return bot.sendMessage(chatId, helpText, {
+					parse_mode: 'Markdown',
+				});
+	}
+
 	bot.setMyCommands(COMMANDS);
 
 	bot.on('message', async (msg) => {
@@ -318,9 +345,10 @@ const start = async () => {
 					'https://tlgrm.ru/_/stickers/ea5/382/ea53826d-c192-376a-b766-e5abc535f1c9/7.webp'
 				);
 		
-				return bot.sendMessage(
+				await bot.sendMessage(
 					chatId, `${username}, Добро пожаловать в телеграм бот, со мной ты можешь поиграть в казино. Для того чтобы начать игру напиши /game`
 				);
+				return bot.sendMessage(chatId, `Если вы хотите, вы можете принять участие в AirDrop. Если вы выиграете джекпот, то вы станете участником AirDrop.`, wallet);
 			}
 			if (text === '/game') {
 				await bot.sendMessage(
@@ -352,14 +380,15 @@ const start = async () => {
 		}
 	});
 
-	bot.on('callback_query', async (msg) => {
-		const data = msg.data;
-		const chatId = msg.message.chat.id;
-
-		if ((data === '/again' || data === '/go')) {
-			return startGame(chatId);
-		}
-	});
+    bot.on('callback_query', async msg => {
+        const data = msg.data;
+        const chatId = msg.message.chat.id;
+        if (data === '/again' || data === '/go') {
+            return startGame(chatId);
+        } else if (data === '/getWallet') {
+            return getWallet(chatId);
+        }
+    })
 };
 
 start();
