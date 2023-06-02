@@ -313,27 +313,6 @@ const start = async () => {
 		}
 	}
 
-	// bot.setMyCommands([
-	// 	{
-	// 		command: commandStart,
-	// 		description: 'Познакомься со мной)',
-	// 	},
-	// 	{
-	// 		command: commandGame,
-	// 		description: 'Казино - крутить рулетку',
-	// 	},
-	// ]);
-
-	const getHELP = () => { 
-		let helpText = `*Доступные команды:*\n`;
-			helpText += COMMANDS.map(
-				(command) => `*/${command.command}* ${command.description}`
-			).join(`\n`);
-			return bot.sendMessage(chatId, helpText, {
-					parse_mode: 'Markdown',
-				});
-	}
-
 	bot.setMyCommands(COMMANDS);
 
 	bot.on('message', async (msg) => {
@@ -367,12 +346,7 @@ const start = async () => {
 				);
 			}
 			if (text === '/help') {
-				await bot.sendMessage(chatId, getHELP(), helpOptions);
-				
-				return bot.sendMessage(
-					chatId,
-					`${username}, Добро пожаловать в телеграм бот, со мной ты можешь поиграть в казино. Для того чтобы начать игру напиши /game`
-				);
+
 				const getHELP = () => {
 					let helpText = `*Доступные команды:*\n`;
 					helpText += COMMANDS.map(
