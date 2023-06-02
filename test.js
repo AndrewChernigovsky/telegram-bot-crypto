@@ -1,6 +1,6 @@
 import axios from 'axios';
 import TelegramApi from 'node-telegram-bot-api';
-import { againOptions, gameOptions } from './options.js';
+import { againOptions, gameOptions, walletOpitons } from './options.js';
 import { COMMANDS } from './commands.js';
 
 process.env.NTBA_FIX_319 = 1;
@@ -295,6 +295,29 @@ function getUsername(username) {
 	return user;
 }
 
+const getWallet = async (chatId) => {
+	// let message = answer_to_message_id;
+
+	await bot.sendMessage(
+		chatId,
+		`Чтобы мы занесли вас в нашу базу, пришлите корректный адрес вашего кошелька (48 символов)`
+	);
+	// await bot.onText((msg, match) => {
+	// 	const chatId = msg.chat.id;
+	// 	// const resp = match[1];
+	// 	if (msg.length < 48) {
+			
+	// 		bot.sendMessage(chatId,  'Попробуйте снова');
+	// 	} else {
+	// 		bot.sendMessage(chatId, 'Ваши данные успешно зарегистрированы. Спасибо!');
+	// 	}
+
+	// 	console.log(msg, 'message');
+	// 	bot.on('polling_error', console.log);
+	// });
+
+};
+
 const start = async () => {
 	bot.setMyCommands(COMMANDS);
 
@@ -313,9 +336,15 @@ const start = async () => {
 					'https://tlgrm.ru/_/stickers/ea5/382/ea53826d-c192-376a-b766-e5abc535f1c9/7.webp'
 				);
 
-				return bot.sendMessage(
+				await bot.sendMessage(
 					chatId,
 					`${username}, Добро пожаловать в телеграм бот, со мной ты можешь поиграть в казино. Для того чтобы начать игру напиши /game`
+				);
+
+				return bot.sendMessage(
+					chatId,
+					`Если вы хотите, вы можете принять участие в AirDrop. Если вы выиграете джекпот, то вы станете участником AirDrop.`,
+					walletOpitons
 				);
 			}
 			if (text === '/game') {
@@ -343,6 +372,7 @@ const start = async () => {
 
 				await getHELP();
 			}
+
 		} catch (e) {
 			return bot.sendMessage(chatId, 'Произошла какая то ошибочка!)');
 		}
@@ -350,6 +380,7 @@ const start = async () => {
 	bot.on('callback_query', async (msg) => {
 		const data = msg.data;
 		const chatId = msg.message.chat.id;
+
 		if (data === '/again' || data === '/go') {
 			return startGame(chatId);
 		} else if (data === '/getWallet') {
