@@ -1,10 +1,9 @@
 import axios from 'axios';
-
-process.env.NTBA_FIX_319 = 1;
-
 import TelegramApi from 'node-telegram-bot-api';
 import { againOptions, gameOptions } from './options.js';
-// import { regexp } from 'sequelize/types/lib/operators';
+import { COMMANDS  } from './commands.js'
+
+process.env.NTBA_FIX_319 = 1;
 
 const token = '6032976284:AAFk3IgzIblR-jD6gb0c6bqtbhwyBPxOTWc';
 const bot = new TelegramApi(token, { polling: true });
@@ -18,22 +17,6 @@ const options = {
 			'Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)',
 	},
 };
-
-const optionsBOT = {
-	againOptions: {
-		chat_id: 'CHAT_ID',
-		reply_markup: JSON.stringify({
-			inline_keyboard: [[{ text: 'Крутить', callback_data: '/again' }]],
-		}),
-	},
-	gameOptions: {
-		chat_id: 'CHAT_ID',
-		reply_markup: JSON.stringify({
-			inline_keyboard: [[{ text: 'Начать игру', callback_data: '/go' }]],
-		}),
-	},
-};
-
 
 var result = [];
 var res = '';
@@ -104,8 +87,7 @@ function getRandomIntInclusive(min, max) {
 
 const startGame = async (chatId) => {
 
-	// let chance1 = chance();
-	let chance1 = 1;
+	let chance1 = chance();
 	let countCycles;
 
 	if (chance1 == '0') {
@@ -323,46 +305,38 @@ function getUsername(username) {
 const start = async () => {
 
 	function getCommandBot(command) {
-		console.log(nameBot + ' ' + command);
-		
+		console.log(command);
 
-		// if (command !== `${command}'@'${userBotName}'`) {
-		// 	command.replace(userBotName, command)
-		// 	userBotName;
-		// }
-		if (command !== commandStart && command !== commandGame) {
-			// regexp = /^$/gmi;
-	
-			// command.split(regexp)
-			userBotName;
+		if (commandStart) {
+			command = commandStart;
+		}
+		if (commandGame) {
+			command = commandGame;
 		}
 	}
 
-
-
-	bot.setMyCommands([
-		{
-			command: commandStart,
-			description: 'Познакомься со мной)',
-		},
-		{
-			command: commandGame,
-			description: 'Казино - крутить рулетку',
-		},
-		// {
-		// 	command: getCommandBot(commandStart),
-		// 	description: 'Познакомься со мной)',
-		// },
-		// {
-		// 	command: getCommandBot(commandGame),
-		// 	description: 'Казино - крутить рулетку',
-		// },
-	]);
-
 	// bot.setMyCommands([
-	// 	{ command: '/start', description: 'Познакомься со мной)' },
-	// 	{ command: '/game', description: 'Казино - крутить рулетку' },
+	// 	{
+	// 		command: commandStart,
+	// 		description: 'Познакомься со мной)',
+	// 	},
+	// 	{
+	// 		command: commandGame,
+	// 		description: 'Казино - крутить рулетку',
+	// 	},
 	// ]);
+
+	const getHELP = () => { 
+		let helpText = `*Доступные команды:*\n`;
+			helpText += COMMANDS.map(
+				(command) => `*/${command.command}* ${command.description}`
+			).join(`\n`);
+			return bot.sendMessage(chatId, helpText, {
+					parse_mode: 'Markdown',
+				});
+	}
+
+	bot.setMyCommands(COMMANDS);
 
 	bot.on('message', async (msg) => {
 		const text = msg.text;
@@ -394,21 +368,28 @@ const start = async () => {
 					gameOptions
 				);
 			}
+			if (text === '/help') {
+				await bot.sendMessage(chatId, getHELP(), helpOptions);
+				
+				return bot.sendMessage(
+					chatId,
+					`${username}, Добро пожаловать в телеграм бот, со мной ты можешь поиграть в казино. Для того чтобы начать игру напиши /game`
+				);
+			}
 		} catch (e) {
 			return bot.sendMessage(chatId, 'Произошла какая то ошибочка!)');
 		}
 	});
 
-	bot.on('callback_query', async (msg) => {
-		const data = msg.data;
-		const chatId = msg.message.chat.id;
-
-		console.log(data)
-		if ((data === '/again' || data === '/go')) {
-			return startGame(chatId);
-		}
-	});
-
+    bot.on('callback_query', async msg => {
+        const data = msg.data;
+        const chatId = msg.message.chat.id;
+        if (data === '/again' || data === '/go') {
+            return startGame(chatId);
+        } else if (data === '/getWallet') {
+            return getWallet(chatId);
+        }
+    })
 };
 
 start();
