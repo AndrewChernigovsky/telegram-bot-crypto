@@ -10,7 +10,6 @@ export const COMMANDS = [
 	{
 		command: '/help',
 		description: 'все команды',
-		help: true,
 	},
 	{
 		command: '/getWallet',
